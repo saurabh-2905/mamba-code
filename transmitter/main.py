@@ -159,6 +159,7 @@ def add_to_que(msg, current_time):
         que.pop()
         # add the newest msg at the front of que
         que = [(msg, current_time)] + que
+        print('Queue', que)
     else:
         que = [(msg, current_time)] + que
 
@@ -200,6 +201,7 @@ def lora_rcv_exec(p):
                 if int(board_id) == SENSORBOARD_ID:
                     for each_pkt in que:
                         if each_pkt[1] == int(timestamp):
+                            print('ACK received:', each_pkt)
                             que.remove(each_pkt)
             except Exception:
                 pass
@@ -365,6 +367,7 @@ while True:
     current_time = time.mktime(time.localtime())
     SENSOR_STATUS = 0
     LIMITS_BROKEN = 0
+    print('start of the loop:', current_time, SENSOR_STATUS, LIMITS_BROKEN)
     j = 6
     for i in range(len(CONNECTION_VAR)):
         # Sensor Data is available & sensor is working
@@ -376,6 +379,7 @@ while True:
                 if not reading_co2[0] == -1:
                     scd_co2, scd_temp, scd_hum = reading_co2
                     if not (THRESHOLD_LIMITS[i][0] <= scd_co2 <= THRESHOLD_LIMITS[i][1]):
+                        print('Thresh broken', i)
                         LIMITS_BROKEN = 1
                 SENSOR_DATA[0] = round(scd_co2, 2)
                 SENSOR_DATA[1] = round(scd_temp, 2)
@@ -384,6 +388,7 @@ while True:
                 # MCP3221, BMP180 sensor reading
                 var = func_call()
                 if not (THRESHOLD_LIMITS[i][0] <= var <= THRESHOLD_LIMITS[i][1]):
+                    print('Thresh broken', i, var)
                     LIMITS_BROKEN = 1
                 SENSOR_DATA[i+2] = round(var, 2)
             else:
@@ -391,8 +396,10 @@ while True:
                 micropython.schedule(func_call, i)
                 if not (THRESHOLD_LIMITS[4][0] <= am_temp <= THRESHOLD_LIMITS[4][1]):
                     LIMITS_BROKEN = 1
+                    print('Thresh broken', i)
                 if not (THRESHOLD_LIMITS[4][2] <= am_hum <= THRESHOLD_LIMITS[4][3]):
                     LIMITS_BROKEN = 1
+                    print('Thresh broken', i)
                 SENSOR_DATA[j] = am_temp
                 SENSOR_DATA[j+1] = am_hum
                 j += 2
@@ -411,6 +418,7 @@ while True:
                 SENSOR_STATUS += 2**(i)
             else:
                 SENSOR_STATUS += 2**(i)
+    print('sensor data:', SENSOR_DATA)
     # prepare the packted to be sent
     msg = ustruct.pack(_pkng_frmt, SENSOR_DATA[0], SENSOR_DATA[3],
                        SENSOR_DATA[4], SENSOR_DATA[5], SENSOR_DATA[6],
@@ -426,11 +434,13 @@ while True:
     if LIMITS_BROKEN:
         add_to_que(msg, current_time)
         lora.send(msg)  # Sends imidiately if threshold limits are broken.
+        print('send immediately')
         lora.recv()
     elif cb_30_done:  # send the messages every 30 seconds
         try:
             add_to_que(msg, current_time)
             lora.send(que[0][0])
+            print('cb_30_done:', que[0][0])
             lora.recv()
         except Exception as e:
             write_to_log('callback 30: {}'.format(e), str(current_time))
@@ -453,6 +463,7 @@ while True:
         retransmit_count += 1
         if que != []:
             lora.send(que[0][0])
+            print('cb_retrans_done:', que[0][0])
             lora.recv()
         if retransmit_count >= 2:
             timer1.deinit()
