@@ -154,12 +154,12 @@ def add_to_que(msg, current_time):
     Adds given msg to the que with a given timestamp
     """
     global que
+    print('Queue', len(que))
     if len(que) >= MAX_QUEUE:
         # pop the packet from the end of que (the oldest packet)
         que.pop()
         # add the newest msg at the front of que
         que = [(msg, current_time)] + que
-        print('Queue', que)
     else:
         que = [(msg, current_time)] + que
 
@@ -197,6 +197,7 @@ def lora_rcv_exec(p):
             msg = rcv_msg[i]
             try:
                 recv_msg = msg.decode()
+                print('received msg', recv_msg)
                 board_id, timestamp = recv_msg.split(',')
                 if int(board_id) == SENSORBOARD_ID:
                     for each_pkt in que:
@@ -325,7 +326,7 @@ except Exception:
 
 
 # Thresshold limits
-THRESHOLD_LIMITS = ((0.0, 3000.0), (0.0, 20.0), (18, 23.0), (950.0, 1040.0),
+THRESHOLD_LIMITS = ((0.0, 3000.0), (0.0, 20.0), (0, 23.0), (950.0, 1040.0),
                     (18.0, 30.0, 0.0, 100.0))
 
 # connectionvaribles for each sensor
