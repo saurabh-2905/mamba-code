@@ -61,7 +61,7 @@ class VarLogger:
             cls.data_dict[event_num] = _vartimestamps ### format of cls.data_dict = {event_num: [(timestamp1,val), (timestamp2, val), ...]}
 
         else:
-            cls.data_dict[event_num] = [log_time]
+            cls.data_dict[event_num] = [(log_time, val)]
 
         ### log the sequence to trace file
         cls.log_seq(event_num, log_time)
