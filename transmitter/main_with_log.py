@@ -20,6 +20,7 @@ from am2301 import AM2301
 from lib.varlogger import VarLogger as vl
 import _thread
 import gc
+import sys
 
 #vl.log(var='0', fun=_fun_name, clas=_cls_name, th=_thread_id)     ### standard logging format
 
@@ -562,152 +563,162 @@ gc_start_time = utime.ticks_ms()
 gc.collect()
 print('gc.collect duration:', utime.ticks_ms()-gc_start_time)
 
-try:
-    while True:
-        gc.collect()
-        # get the current time of the script in seconds wrt the localtime
-        current_time = time.mktime(time.localtime())
-        vl.log(var='current_time', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=current_time)    ### logging
-        SENSOR_STATUS = 0
-        vl.log(var='SENSOR_STATUS', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=SENSOR_STATUS)    ### logging
-        LIMITS_BROKEN = 0
-        vl.log(var='LIMITS_BROKEN', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=LIMITS_BROKEN)    ### logging
-        # print('start of the loop:', current_time, SENSOR_STATUS, LIMITS_BROKEN)
-        j = 6
-        vl.log(var='j', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=j)    ### logging
-        for i in range(len(CONNECTION_VAR)):
-            # Sensor Data is available & sensor is working
-            func_call = FUNC_VAR[i]
-            vl.log(var='func_call', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=func_call)    ### logging
-            try:
-                if i == 0:
-                    # SCD30 sensor readings (involves three values)
-                    reading_co2 = func_call()
-                    vl.log(var='reading_co2', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=reading_co2)    ### logging
-                    if not reading_co2[0] == -1:
-                        scd_co2, scd_temp, scd_hum = reading_co2
-                        vl.log(var='scd_co2', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=scd_co2)    ### logging
-                        vl.log(var='scd_temp', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=scd_temp)    ### logging
-                        vl.log(var='scd_hum', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=scd_hum)    ### logging
-                        if not (THRESHOLD_LIMITS[i][0] <= scd_co2 <= THRESHOLD_LIMITS[i][1]):
-                            print('Thresh broken', i)
-                            LIMITS_BROKEN = 1
-                            vl.log(var='LIMITS_BROKEN', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=LIMITS_BROKEN)    ### logging
-                    SENSOR_DATA[0] = round(scd_co2, 2)
-                    vl.log(var='SENSOR_DATA', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=SENSOR_DATA)    ### logging
-                    SENSOR_DATA[1] = round(scd_temp, 2)
-                    vl.log(var='SENSOR_DATA', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=SENSOR_DATA)    ### logging
-                    SENSOR_DATA[2] = round(scd_hum, 2)
-                    vl.log(var='SENSOR_DATA', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=SENSOR_DATA)    ### logging
-                elif 1 <= i <= 3:
-                    # MCP3221, BMP180 sensor reading
-                    var = func_call()
-                    vl.log(var='var', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=var)    ### logging
-                    if not (THRESHOLD_LIMITS[i][0] <= var <= THRESHOLD_LIMITS[i][1]):
-                        print('Thresh broken', i, var)
-                        LIMITS_BROKEN = 1
-                        vl.log(var='LIMITS_BROKEN', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=LIMITS_BROKEN)    ### logging
-                    SENSOR_DATA[i+2] = round(var, 2)
-                    vl.log(var='SENSOR_DATA', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=SENSOR_DATA)
-                else:
-                    # AM2301 readings(involves 2 values)
-                    micropython.schedule(func_call, i)
-                    if not (THRESHOLD_LIMITS[4][0] <= am_temp <= THRESHOLD_LIMITS[4][1]):
-                        LIMITS_BROKEN = 1
-                        vl.log(var='LIMITS_BROKEN', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=LIMITS_BROKEN)    ### logging
+##### for testing purposes
+testing_start = time.mktime(time.localtime())
+while True:
+    ##### for testing purposes
+    print('Time since started:', utime.time()- testing_start )
+
+    gc.collect()
+    # get the current time of the script in seconds wrt the localtime
+    current_time = time.mktime(time.localtime())
+    vl.log(var='current_time', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=current_time)    ### logging
+    SENSOR_STATUS = 0
+    vl.log(var='SENSOR_STATUS', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=SENSOR_STATUS)    ### logging
+    LIMITS_BROKEN = 0
+    vl.log(var='LIMITS_BROKEN', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=LIMITS_BROKEN)    ### logging
+    # print('start of the loop:', current_time, SENSOR_STATUS, LIMITS_BROKEN)
+    j = 6
+    vl.log(var='j', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=j)    ### logging
+    for i in range(len(CONNECTION_VAR)):
+        # Sensor Data is available & sensor is working
+        func_call = FUNC_VAR[i]
+        vl.log(var='func_call', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=func_call)    ### logging
+        try:
+            if i == 0:
+                # SCD30 sensor readings (involves three values)
+                reading_co2 = func_call()
+                vl.log(var='reading_co2', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=reading_co2)    ### logging
+                if not reading_co2[0] == -1:
+                    scd_co2, scd_temp, scd_hum = reading_co2
+                    vl.log(var='scd_co2', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=scd_co2)    ### logging
+                    vl.log(var='scd_temp', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=scd_temp)    ### logging
+                    vl.log(var='scd_hum', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=scd_hum)    ### logging
+                    if not (THRESHOLD_LIMITS[i][0] <= scd_co2 <= THRESHOLD_LIMITS[i][1]):
                         print('Thresh broken', i)
-                    if not (THRESHOLD_LIMITS[4][2] <= am_hum <= THRESHOLD_LIMITS[4][3]):
                         LIMITS_BROKEN = 1
                         vl.log(var='LIMITS_BROKEN', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=LIMITS_BROKEN)    ### logging
-                        print('Thresh broken', i)
-                    SENSOR_DATA[j] = am_temp
-                    vl.log(var='SENSOR_DATA', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=SENSOR_DATA)    ### logging
-                    SENSOR_DATA[j+1] = am_hum
-                    vl.log(var='SENSOR_DATA', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=SENSOR_DATA)
-                    j += 2
-                    vl.log(var='j', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=j)    ### logging
-                if CONNECTION_VAR[i] == 0:
-                    CONNECTION_VAR[i] = 1
-                    vl.log(var='CONNECTION_VAR', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=CONNECTION_VAR)    ### logging
-            except Exception as e:
-                CONNECTION_VAR[i] = 0
+                SENSOR_DATA[0] = round(scd_co2, 2)
+                vl.log(var='SENSOR_DATA', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=SENSOR_DATA)    ### logging
+                SENSOR_DATA[1] = round(scd_temp, 2)
+                vl.log(var='SENSOR_DATA', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=SENSOR_DATA)    ### logging
+                SENSOR_DATA[2] = round(scd_hum, 2)
+                vl.log(var='SENSOR_DATA', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=SENSOR_DATA)    ### logging
+            elif 1 <= i <= 3:
+                # MCP3221, BMP180 sensor reading
+                var = func_call()
+                vl.log(var='var', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=var)    ### logging
+                if not (THRESHOLD_LIMITS[i][0] <= var <= THRESHOLD_LIMITS[i][1]):
+                    print('Thresh broken', i, var)
+                    LIMITS_BROKEN = 1
+                    vl.log(var='LIMITS_BROKEN', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=LIMITS_BROKEN)    ### logging
+                SENSOR_DATA[i+2] = round(var, 2)
+                vl.log(var='SENSOR_DATA', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=SENSOR_DATA)
+            else:
+                # AM2301 readings(involves 2 values)
+                micropython.schedule(func_call, i)
+                if not (THRESHOLD_LIMITS[4][0] <= am_temp <= THRESHOLD_LIMITS[4][1]):
+                    LIMITS_BROKEN = 1
+                    vl.log(var='LIMITS_BROKEN', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=LIMITS_BROKEN)    ### logging
+                    print('Thresh broken', i)
+                if not (THRESHOLD_LIMITS[4][2] <= am_hum <= THRESHOLD_LIMITS[4][3]):
+                    LIMITS_BROKEN = 1
+                    vl.log(var='LIMITS_BROKEN', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=LIMITS_BROKEN)    ### logging
+                    print('Thresh broken', i)
+                SENSOR_DATA[j] = am_temp
+                vl.log(var='SENSOR_DATA', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=SENSOR_DATA)    ### logging
+                SENSOR_DATA[j+1] = am_hum
+                vl.log(var='SENSOR_DATA', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=SENSOR_DATA)
+                j += 2
+                vl.log(var='j', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=j)    ### logging
+            if CONNECTION_VAR[i] == 0:
+                CONNECTION_VAR[i] = 1
                 vl.log(var='CONNECTION_VAR', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=CONNECTION_VAR)    ### logging
-                write_to_log('failed {}: {}'.format(SENSORS_LIST[i], e),
-                            str(current_time))
+        except Exception as e:
+            CONNECTION_VAR[i] = 0
+            vl.log(var='CONNECTION_VAR', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=CONNECTION_VAR)    ### logging
+            write_to_log('failed {}: {}'.format(SENSORS_LIST[i], e),
+                        str(current_time))
 
-            if not CONNECTION_VAR[i]:
-                # Sensor failed
-                if i == 0:
-                    SENSOR_STATUS = 2**(i)
-                    vl.log(var='SENSOR_STATUS', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=SENSOR_STATUS)    ### logging
-                elif 1 <= i <= 3:
-                    SENSOR_STATUS += 2**(i)
-                    vl.log(var='SENSOR_STATUS', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=SENSOR_STATUS)
-                else:
-                    SENSOR_STATUS += 2**(i)
-                    vl.log(var='SENSOR_STATUS', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=SENSOR_STATUS)
-        print('sensor data:', SENSOR_DATA)
-        # prepare the packted to be sent
-        msg = ustruct.pack(_pkng_frmt, SENSOR_DATA[0], SENSOR_DATA[3],
-                        SENSOR_DATA[4], SENSOR_DATA[5], SENSOR_DATA[6],
-                        SENSOR_DATA[7], SENSOR_DATA[8], SENSOR_DATA[9],
-                        SENSOR_DATA[10], SENSOR_DATA[11], SENSOR_DATA[12],
-                        SENSOR_DATA[13], SENSOR_STATUS,
-                        LIMITS_BROKEN, 0, SENSORBOARD_ID)  # current Sensorreadings
-        vl.log(var='msg', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=msg)    ### logging
-        msg += ustruct.pack(">L", current_time)  # add timestamp to the msg
-        vl.log(var='msg', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=msg)    ### logging
-        msg += ustruct.pack(">L", crc32(0, msg, 62))  # add 32-bit crc to the msg
-        vl.log(var='msg', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=msg)    ### logging
+        if not CONNECTION_VAR[i]:
+            # Sensor failed
+            if i == 0:
+                SENSOR_STATUS = 2**(i)
+                vl.log(var='SENSOR_STATUS', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=SENSOR_STATUS)    ### logging
+            elif 1 <= i <= 3:
+                SENSOR_STATUS += 2**(i)
+                vl.log(var='SENSOR_STATUS', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=SENSOR_STATUS)
+            else:
+                SENSOR_STATUS += 2**(i)
+                vl.log(var='SENSOR_STATUS', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=SENSOR_STATUS)
+    print('sensor data:', SENSOR_DATA)
+    # prepare the packted to be sent
+    msg = ustruct.pack(_pkng_frmt, SENSOR_DATA[0], SENSOR_DATA[3],
+                    SENSOR_DATA[4], SENSOR_DATA[5], SENSOR_DATA[6],
+                    SENSOR_DATA[7], SENSOR_DATA[8], SENSOR_DATA[9],
+                    SENSOR_DATA[10], SENSOR_DATA[11], SENSOR_DATA[12],
+                    SENSOR_DATA[13], SENSOR_STATUS,
+                    LIMITS_BROKEN, 0, SENSORBOARD_ID)  # current Sensorreadings
+    vl.log(var='msg', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=msg)    ### logging
+    msg += ustruct.pack(">L", current_time)  # add timestamp to the msg
+    vl.log(var='msg', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=msg)    ### logging
+    msg += ustruct.pack(">L", crc32(0, msg, 62))  # add 32-bit crc to the msg
+    vl.log(var='msg', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=msg)    ### logging
 
-        micropython.schedule(lora_rcv_exec, 0)  # process received msgs
+    micropython.schedule(lora_rcv_exec, 0)  # process received msgs
 
-        if LIMITS_BROKEN:
+    if LIMITS_BROKEN:
+        add_to_que(msg, current_time)
+        lora.send(msg)  # Sends imidiately if threshold limits are broken.
+        print('send immediately')
+        lora.recv()
+    elif cb_30_done:  # send the messages every 30 seconds
+        try:
             add_to_que(msg, current_time)
-            lora.send(msg)  # Sends imidiately if threshold limits are broken.
-            print('send immediately')
+            lora.send(que[0][0])
+            print('cb_30_done:', que[0][0])
             lora.recv()
-        elif cb_30_done:  # send the messages every 30 seconds
-            try:
-                add_to_que(msg, current_time)
-                lora.send(que[0][0])
-                print('cb_30_done:', que[0][0])
-                lora.recv()
-            except Exception as e:
-                write_to_log('callback 30: {}'.format(e), str(current_time))
-            start_time = current_time
-            vl.log(var='start_time', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=start_time)    ### logging
-            timer1.init(period=retx_interval, mode=Timer.PERIODIC, callback=cb_retrans)
-            timer0.init(period=msg_interval, mode=Timer.ONE_SHOT, callback=cb_30)
+        except Exception as e:
+            write_to_log('callback 30: {}'.format(e), str(current_time))
+        start_time = current_time
+        vl.log(var='start_time', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=start_time)    ### logging
+        timer1.init(period=retx_interval, mode=Timer.PERIODIC, callback=cb_retrans)
+        timer0.init(period=msg_interval, mode=Timer.ONE_SHOT, callback=cb_30)
 
-            # randomize the msg interval to avoid continous collision of packets
-            if random.random() >= 0.4:
-                # select time randomly with steps of 1000ms, because the max on
-                # air time is 123ms and 390ms for SF7 and SF9 resp.
-                msg_interval = random.randrange(20000, 40000, 1000)
-                vl.log(var='msg_interval', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=msg_interval)    ### logging
-                # select random time interval with step size of 1 sec
-                retx_interval = random.randrange(2000, 10000, 1000)
-                vl.log(var='retx_interval', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=retx_interval)
+        # randomize the msg interval to avoid continous collision of packets
+        if random.random() >= 0.4:
+            # select time randomly with steps of 1000ms, because the max on
+            # air time is 123ms and 390ms for SF7 and SF9 resp.
+            msg_interval = random.randrange(20000, 40000, 1000)
+            vl.log(var='msg_interval', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=msg_interval)    ### logging
+            # select random time interval with step size of 1 sec
+            retx_interval = random.randrange(2000, 10000, 1000)
+            vl.log(var='retx_interval', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=retx_interval)
 
-            # reset timer booleans
-            cb_30_done = False
-            vl.log(var='cb_30_done', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=cb_30_done)
-        elif cb_retrans_done:  # retransmit every 5 seconds for piled up packets with no ack
-            cb_retrans_done = False
-            vl.log(var='cb_retrans_done', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=cb_retrans_done)
-            retransmit_count += 1
+        # reset timer booleans
+        cb_30_done = False
+        vl.log(var='cb_30_done', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=cb_30_done)
+    elif cb_retrans_done:  # retransmit every 5 seconds for piled up packets with no ack
+        cb_retrans_done = False
+        vl.log(var='cb_retrans_done', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=cb_retrans_done)
+        retransmit_count += 1
+        vl.log(var='retransmit_count', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=retransmit_count)
+        if que != []:
+            lora.send(que[0][0])
+            print('cb_retrans_done:', que[0][0])
+            lora.recv()
+        if retransmit_count >= 2:
+            timer1.deinit()
+            retransmit_count = 0
             vl.log(var='retransmit_count', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=retransmit_count)
-            if que != []:
-                lora.send(que[0][0])
-                print('cb_retrans_done:', que[0][0])
-                lora.recv()
-            if retransmit_count >= 2:
-                timer1.deinit()
-                retransmit_count = 0
-                vl.log(var='retransmit_count', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=retransmit_count)
-except Exception as e:
-    vl.save()
-    print('main thread error:', e)  
-    #/// log the traceback message
-    vl.traceback(e)
+
+    ##### for testing purposes
+    if utime.time()-testing_start >= 900: # 15 minutes
+        vl.save()
+        sys.exit()
+
+# except Exception as e:
+#     vl.save()
+#     print('main thread error:', e)  
+#     #/// log the traceback message
+#     vl.traceback(e)
