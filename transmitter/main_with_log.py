@@ -513,7 +513,7 @@ testing_start = time.mktime(time.localtime())
 ##### for testing purposes ######
 
 counter_i = 1
-vl.log(counter_i='0', fun=_fun_name, clas=_cls_name, th=_thread_id)
+vl.log(var='counter_i', fun=_fun_name, clas=_cls_name, th=_thread_id)
 while True:
     try:
         ##### for testing purposes ######
