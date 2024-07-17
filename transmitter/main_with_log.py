@@ -183,6 +183,7 @@ def cb_lora(p):
         if int(board_id) == SENSORBOARD_ID:
             for each_pkt in que:
                 if each_pkt[1] == int(timestamp):
+                    print('Received ack for:', each_pkt[1]) # testing
                     que.remove(each_pkt)
     except Exception as e:
         write_to_log('callback lora: {}'.format(e),
@@ -456,7 +457,7 @@ except Exception:
 
 
 # Thresshold limits
-THRESHOLD_LIMITS = ((0.0, 1000.0), (0.0, 20.0), (18, 23.0), (950.0, 1040.0),
+THRESHOLD_LIMITS = ((0.0, 1000.0), (0.0, 20.0), (0, 23.0), (950.0, 1040.0),
                     (18.0, 30.0, 0.0, 100.0))
 vl.log(var='THRESHOLD_LIMITS', fun=_fun_name, clas=_cls_name, th=_thread_id)
 

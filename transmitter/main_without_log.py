@@ -301,7 +301,7 @@ except Exception:
 
 
 # Thresshold limits
-THRESHOLD_LIMITS = ((0.0, 1000.0), (0.0, 20.0), (18, 23.0), (950.0, 1040.0),
+THRESHOLD_LIMITS = ((0.0, 1000.0), (0.0, 20.0), (0, 23.0), (950.0, 1040.0),
                     (18.0, 30.0, 0.0, 100.0))
 
 # connectionvaribles for each sensor
