@@ -55,7 +55,7 @@ try:
         pycom.rgbled(0x000022) # blue
         time.sleep(0.2)
         pycom.rgbled(0x000000)  # off
-        time.sleep(1)
+        time.sleep(0.5)
 except:
     s.close()
     print('Socket closed')
