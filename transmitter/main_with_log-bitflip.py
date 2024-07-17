@@ -563,8 +563,10 @@ gc_start_time = utime.ticks_ms()
 gc.collect()
 print('gc.collect duration:', utime.ticks_ms()-gc_start_time)
 
-##### for testing purposes
+####### for testing purposes #######
 testing_start = time.mktime(time.localtime())
+j_test = 20
+####################################
 while True:
     ##### for testing purposes
     print('Time since started:', utime.time()- testing_start )
@@ -667,12 +669,24 @@ while True:
 
     micropython.schedule(lora_rcv_exec, 0)  # process received msgs
 
+    ##### for testing purposes #######
+    if random.random() >= 0.6:    ### introducing random bitflip
+        cb_30_done = True
+    ##################################
+
     if LIMITS_BROKEN:
         add_to_que(msg, current_time)
         lora.send(msg)  # Sends imidiately if threshold limits are broken.
         print('send immediately')
         lora.recv()
     elif cb_30_done:  # send the messages every 30 seconds
+        print('cb_30_done:', cb_30_done)
+        ###### simulate bitflip ##############
+        if (utime.time()- testing_start)%150 > j_test and (utime.time()- testing_start)%150 <= 50:
+            cb_30_done = True
+            if (utime.time()- testing_start)%150 == 0:
+                j_test+=3
+        #######################################
         try:
             add_to_que(msg, current_time)
             lora.send(que[0][0])
