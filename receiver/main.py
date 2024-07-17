@@ -78,7 +78,10 @@ all_values = []
 # Please pick the region that matches where you are using the device
 
 pycom.heartbeat(False)
-pycom.rgbled(0x008B00) # green
+pycom.rgbled(0x005500) # green
+time.sleep(1)
+pycom.rgbled(0x000000)  # off
+pycom.heartbeat(True)
 
 try:
     lora = LoRa(mode=LoRa.LORA, region=LoRa.EU868)
@@ -89,6 +92,14 @@ try:
         # recv_msg = receive()
         recv_msg = s.recv(80)
         print(recv_msg)
+        #### indication of msg received
+        if len(recv_msg) != 0:
+            pycom.heartbeat(False)
+            pycom.rgbled(0x005500) # green
+            time.sleep(0.3)
+            pycom.rgbled(0x000000)  # off
+            pycom.heartbeat(True)
+
         if len(recv_msg) == MESSAGE_LENGTH:  # to differentiate between heartbeat and msg
             if ustruct.unpack(">L", recv_msg[-4:])[0] != crc32(0, recv_msg[:-4], 62):
                 print('Invalid CRC32 in msg')
@@ -106,8 +117,19 @@ try:
 
         else:
             print('Corrupted messge with length:', len(recv_msg))
+
+        # #### indicates still working
+        # pycom.rgbled(0x001100) # green
+        # time.sleep(0.1)
+        # pycom.rgbled(0x000000)  # off
         time.sleep(0.5)
+        
 except Exception as e:
+    s.close()
+    print('Socket closed')
+    pycom.heartbeat(False)
+    pycom.rgbled(0x550000) # red
+    time.sleep(1)
     pycom.heartbeat(True)
-    print(e)
     sys.print_exception(e)
+    sys.exit()
