@@ -20,6 +20,10 @@ from mcp3221 import MCP3221
 from bmp180 import BMP180
 from am2301 import AM2301
 
+import utime
+import sys
+import gc
+
 # ------------------------ function declaration -------------------------------
 
 
@@ -173,6 +177,7 @@ def get_node_id(hex=False):
     else:
         return int(node_id, 16)
 
+gc.collect()
 
 # Allcoate emergeny buffer for interrupt signals
 micropython.alloc_emergency_exception_buf(100)
@@ -331,8 +336,24 @@ timer0.init(period=msg_interval, mode=Timer.ONE_SHOT, callback=cb_30)
 start_time = time.mktime(time.localtime())
 retransmit_count = 0
 
+###### for testing purposes ######
+gc_start_time = utime.ticks_ms()
+gc.collect()
+print('gc.collect duration:', utime.ticks_ms()-gc_start_time)
+###### for testing purposes ######
+
+##### for testing purposes ######
+testing_start = time.mktime(time.localtime())
+##### for testing purposes ######
+
 counter_i = 1
 while True:
+    ##### for testing purposes ######
+    print('Time since started:', utime.time()- testing_start )
+    ##### for testing purposes ######
+
+    gc.collect()
+    
     # get the current time of the script in seconds wrt the localtime
     current_time = time.mktime(time.localtime())
     SENSOR_STATUS = 0
@@ -490,3 +511,7 @@ while True:
             if retransmit_count >= 2:
                 timer1.deinit()
                 retransmit_count = 0
+
+    ##### for testing purposes
+    if utime.time()-testing_start >= 900: # 15 minutes
+        sys.exit()
