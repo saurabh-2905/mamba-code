@@ -1,6 +1,6 @@
 import gc
 from machine import Pin
-import micropython
+from time import sleep
 
 TX_BASE_ADDR = 0x00
 RX_BASE_ADDR = 0x00
@@ -46,7 +46,6 @@ IRQ_TX_DONE_MASK = 0x08
 IRQ_PAYLOAD_CRC_ERROR_MASK = 0x20
 
 MAX_PKT_LENGTH = 255
-
 
 class LoRa:
 
@@ -102,7 +101,7 @@ class LoRa:
 
     def set_sync(self, sync):
         self.sync = sync
-
+        
     def send(self, x):
         if isinstance(x, str):
             x = x.encode()
@@ -184,7 +183,7 @@ class LoRa:
         self._write(REG_MODEM_CONFIG_2, config)
 
     def set_sync_word(self, sw):
-        self._write(REG_SYNC_WORD, sw)
+        self._write(REG_SYNC_WORD, sw) 
 
     def set_implicit(self, implicit=False):
         if self._implicit != implicit:
@@ -206,12 +205,9 @@ class LoRa:
                 self.rx.irq(handler=None, trigger=0)
 
     def recv(self):
-        self._write(REG_OP_MODE, MODE_LORA | MODE_RX_CONTINUOUS)
+        self._write(REG_OP_MODE, MODE_LORA | MODE_RX_CONTINUOUS) 
 
     def _irq_recv(self, event_source):
-        micropython.schedule(self._irq_scheduled, event_source)
-
-    def _irq_scheduled(self, evt_src):
         f = self._get_irq_flags()
         if f & IRQ_PAYLOAD_CRC_ERROR_MASK == 0:
             if self._on_recv:
@@ -238,7 +234,7 @@ class LoRa:
         return resp
 
     def _read(self, addr):
-        x = self._transfer(addr & 0x7f)
+        x = self._transfer(addr & 0x7f) 
         return int.from_bytes(x, 'big')
 
     def _write(self, addr, x):
