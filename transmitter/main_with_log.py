@@ -652,6 +652,7 @@ while True:
                 SENSOR_STATUS += 2**(i)
                 vl.log(var='SENSOR_STATUS', fun=_fun_name, clas=_cls_name, th=_thread_id)#, val=SENSOR_STATUS)
     print('sensor data:', SENSOR_DATA)
+    print('sensor status:', SENSOR_STATUS)
     # prepare the packted to be sent
     msg = ustruct.pack(_pkng_frmt, SENSOR_DATA[0], SENSOR_DATA[3],
                     SENSOR_DATA[4], SENSOR_DATA[5], SENSOR_DATA[6],

@@ -420,6 +420,7 @@ while True:
             else:
                 SENSOR_STATUS += 2**(i)
     print('sensor data:', SENSOR_DATA)
+    print('sensor status:', SENSOR_STATUS)
     # prepare the packted to be sent
     msg = ustruct.pack(_pkng_frmt, SENSOR_DATA[0], SENSOR_DATA[3],
                        SENSOR_DATA[4], SENSOR_DATA[5], SENSOR_DATA[6],
