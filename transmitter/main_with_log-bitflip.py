@@ -549,9 +549,10 @@ gc.collect()
 print('gc.collect duration:', utime.ticks_ms()-gc_start_time)
 ###### for testing purposes ######
 
-##### for testing purposes ######
+####### for testing purposes #######
 testing_start = time.mktime(time.localtime())
-##### for testing purposes ######
+j_test = 20
+####################################
 
 while True:
     ##### for testing purposes ######
@@ -676,6 +677,10 @@ while True:
         #     lora.recv()
         #     # if heartbeats collide, add randomization as seen below
         elif cb_30_done:  # send the messages every 30 seconds
+            if (utime.time()- testing_start)%150 > j_test and (utime.time()- testing_start)%150 <= 50:
+                cb_30_done = True
+                if (utime.time()- testing_start)%150 == 0:
+                    j_test+=2
             try:
                 add_to_que(msg, current_time)
                 lora.send(que[0][0])
