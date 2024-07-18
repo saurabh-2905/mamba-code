@@ -4,7 +4,7 @@ import socket
 import time
 import pycom
 import sys
-import random
+# import random
 from machine import Pin
 
 
