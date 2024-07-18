@@ -503,6 +503,9 @@ while True:
     
         ##### for testing purposes
         if utime.time()-testing_start >= 900: # 15 minutes
+            timer0.deinit()
+            timer1.deinit()
+            print('Timer deinitiated')
             sys.exit()
         ##### for testing purposes
 
