@@ -1,39 +1,10 @@
-# from lora import LoRa
-# import time
-# import utime
-# import micropython
-# from machine import Pin, I2C, SoftSPI, Timer
-
-# def cb_30():
-#     global cb_30_done
-#     cb_30_done = True
-
-# ####### variables - global #######
-# cb_30_done = False
-
-# ################## Initialize LoRa ##################
-# SPI_BUS = SoftSPI(baudrate=10000000, sck=Pin(18, Pin.OUT),
-#                       mosi=Pin(23, Pin.OUT), miso=Pin(19, Pin.IN))
-    
-# lora = LoRa(SPI_BUS, True, cs=Pin(5, Pin.OUT), rx=Pin(2, Pin.IN))
-
-# # Create Timers
-# timer0 = Timer(0)
-# timer0.init(period=3, mode=Timer.PERIODIC, callback=cb_30)
-
-# while True:
-#     if cb_30_done:
-#         cb_30_done = False
-#         lora.send('Hello, This is noise packet for testing')
-#         print('Sent')
-#     time.sleep(1)
-
 
 from network import LoRa
 import socket
 import time
 import pycom
 import sys
+import random
 from machine import Pin
 
 
@@ -47,33 +18,39 @@ ext_button = Pin('P10', mode=Pin.IN, pull=Pin.PULL_UP)
 
 try:
     while True:
-        # s.send('Hello World, This is noise packet for Testing')
-        # print('Ping {}'.format(i))
-        # i= i+1
-        # ### blikn the led for 500 ms
-        # pycom.rgbled(0x002200) # green
-        # time.sleep(0.1)
-        # pycom.rgbled(0x000000)  # off
-        # time.sleep(2)
-        # pycom.rgbled(0x000022) # blue
-        # time.sleep(0.2)
-        # pycom.rgbled(0x000000)  # off
-        # time.sleep(1)
-
-        if ext_button() == 0:
-            print('Button pressed, send msg')
-            s.send('Hello World, This is noise packet for Testing')
-            # print('Ping {}'.format(i))
-            pycom.rgbled(0x002200) # green
-            time.sleep(0.1)
-            pycom.rgbled(0x000000)  # off
-            time.sleep(0.2)
-        else:
-            print('Button not pressed')
-            pycom.rgbled(0x000022) # blue
-            time.sleep(0.2)
-            pycom.rgbled(0x000000)  # off
+        s.send('Hello World, This is noise packet for Testing')
+        print('Ping {}'.format(i))
+        i= i+1
+        ### blikn the led for 500 ms
+        pycom.rgbled(0x002200) # green
+        time.sleep(0.1)
+        pycom.rgbled(0x000000)  # off
+        time.sleep(2)
+        pycom.rgbled(0x000022) # blue
+        time.sleep(0.2)
+        pycom.rgbled(0x000000)  # off
+        time.sleep(1)
+        if random.random() < 0.1:
             time.sleep(1)
+        elif random.random() < 0.8:
+            time.sleep(3)
+        else:
+            time.sleep(5)
+
+        # if ext_button() == 0:
+        #     print('Button pressed, send msg')
+        #     s.send('Hello World, This is noise packet for Testing')
+        #     # print('Ping {}'.format(i))
+        #     pycom.rgbled(0x002200) # green
+        #     time.sleep(0.1)
+        #     pycom.rgbled(0x000000)  # off
+        #     time.sleep(0.2)
+        # else:
+        #     print('Button not pressed')
+        #     pycom.rgbled(0x000022) # blue
+        #     time.sleep(0.2)
+        #     pycom.rgbled(0x000000)  # off
+        #     time.sleep(1)
 
 except:
     s.close()
