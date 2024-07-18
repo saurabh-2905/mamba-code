@@ -246,6 +246,8 @@ def write_to_log(msg, timestamp):
     _fun_name = 'write_to_log'
     _cls_name = '0'
 
+    vl.log(var='0', fun=_fun_name, clas=_cls_name, th=_thread_id)
+
     with open("log.txt", "a") as f:
         f.write(msg + "\t" + timestamp + "\n")
 
@@ -375,7 +377,7 @@ vl.log(var='que', fun=_fun_name, clas=_cls_name, th=_thread_id)
 
 # init cb booleans
 cb_30_done = False
-vl.log(var='cb_30_done0', fun=_fun_name, clas=_cls_name, th=_thread_id)
+vl.log(var='cb_30_done', fun=_fun_name, clas=_cls_name, th=_thread_id)
 cb_retrans_done = False
 vl.log(var='cb_retrans_done', fun=_fun_name, clas=_cls_name, th=_thread_id)
 cb_hb_done = False
@@ -486,7 +488,7 @@ except Exception:
 
 # Thresshold limits
 THRESHOLD_LIMITS = ((0.0, 1000.0), (0.0, 20.0), (0, 23.0), (950.0, 1040.0),
-                    (18.0, 30.0, 0.0, 100.0))
+                    (18.0, 40.0, 0.0, 100.0))
 vl.log(var='THRESHOLD_LIMITS', fun=_fun_name, clas=_cls_name, th=_thread_id)
 
 # connectionvaribles for each sensor
@@ -618,7 +620,7 @@ while True:
                         am_temp = 200
                         vl.log(var='am_temp', fun=_fun_name, clas=_cls_name, th=_thread_id)
                         am_hum = 200
-                        vl.log(var='am_temp', fun=_fun_name, clas=_cls_name, th=_thread_id)
+                        vl.log(var='am_hum', fun=_fun_name, clas=_cls_name, th=_thread_id)
                     SENSOR_DATA[j] = am_temp
                     vl.log(var='SENSOR_DATA', fun=_fun_name, clas=_cls_name, th=_thread_id)
                     SENSOR_DATA[j+1] = am_hum
@@ -657,13 +659,16 @@ while True:
         vl.log(var='msg', fun=_fun_name, clas=_cls_name, th=_thread_id)
         msg += ustruct.pack(">L", crc32(0, msg, 62))  # add 32-bit crc to the msg, 60 => 62?
         vl.log(var='msg', fun=_fun_name, clas=_cls_name, th=_thread_id)
-        print('sensor data: ', SENSOR_DATA)
-        print('sensor status: ', SENSOR_STATUS)
+        if SENSOR_STATUS != 0:
+            print('sensor data: ', SENSOR_DATA)
+            print('sensor status: ', SENSOR_STATUS)
 
         if LIMITS_BROKEN:
             add_to_que(msg, current_time)
             lora.send(msg)  # Sends imidiately if threshold limits are broken.
             print('limits broken')
+            print('sensor data: ', SENSOR_DATA)
+            print('sensor status: ', SENSOR_STATUS)
             lora.recv()
         # elif cb_hb_done and not cb_30_done:
         #     cb_hb_done = False
