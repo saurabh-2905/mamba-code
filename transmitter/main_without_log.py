@@ -320,7 +320,7 @@ except Exception:
 
 # Thresshold limits
 THRESHOLD_LIMITS = ((0.0, 1000.0), (0.0, 20.0), (0, 23.0), (950.0, 1040.0),
-                    (18.0, 30.0, 0.0, 100.0))
+                    (18.0, 40.0, 0.0, 100.0))
 
 # connectionvaribles for each sensor
 CONNECTION_VAR = [CONNECTION_CO2, CONNECTION_CO,
@@ -447,13 +447,17 @@ while True:
                         LIMITS_BROKEN, 0, SENSORBOARD_ID)  # current Sensorreadings
         msg += ustruct.pack(">L", current_time)  # add timestamp to the msg
         msg += ustruct.pack(">L", crc32(0, msg, 62))  # add 32-bit crc to the msg, 60 => 62?
-        print('sensor data: ', SENSOR_DATA)
-        print('sensor status: ', SENSOR_STATUS)
+        ##### for testing purposes ######
+        if SENSOR_STATUS != 0:
+            print('sensor data: ', SENSOR_DATA)
+            print('sensor status: ', SENSOR_STATUS)
 
         if LIMITS_BROKEN:
             add_to_que(msg, current_time)
             lora.send(msg)  # Sends imidiately if threshold limits are broken.
             print('limits broken')
+            print('sensor data: ', SENSOR_DATA)
+            print('sensor status: ', SENSOR_STATUS)
             lora.recv()
         # elif cb_hb_done and not cb_30_done:
         #     cb_hb_done = False
