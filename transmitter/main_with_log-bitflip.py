@@ -549,14 +549,15 @@ gc.collect()
 print('gc.collect duration:', utime.ticks_ms()-gc_start_time)
 ###### for testing purposes ######
 
-####### for testing purposes #######
-testing_start = time.mktime(time.localtime())
+##### for testing purposes ######
+testing_start = vl.created_timestamp
+##### for testing purposes ######
+print('Time created:', vl.created_timestamp/1000,  'Time since started:', utime.ticks_ms()- testing_start - vl.time_to_write )
+# sys.exit()
 j_test = 20
-####################################
-
 while True:
     ##### for testing purposes ######
-    print('Time since started:', utime.time()- vl.created_timestamp - vl.time_to_write )
+    print('Time since started:', utime.ticks_ms()- testing_start - vl.time_to_write )
     ##### for testing purposes ######
 
     gc.collect()
@@ -677,11 +678,6 @@ while True:
         #     lora.recv()
         #     # if heartbeats collide, add randomization as seen below
         elif cb_30_done:  # send the messages every 30 seconds
-            if (utime.time()- testing_start)%150 > j_test and (utime.time()- testing_start)%150 <= 50:
-                cb_30_done = True
-                print('Bitflip occured')
-                if (utime.time()- testing_start)%150 == 0:
-                    j_test+=2
             try:
                 add_to_que(msg, current_time)
                 lora.send(que[0][0])
@@ -707,8 +703,15 @@ while True:
                 vl.log(var='retx_interval', fun=_fun_name, clas=_cls_name, th=_thread_id)
 
             # reset timer booleans
-            cb_30_done = False
-            vl.log(var='cb_30_done', fun=_fun_name, clas=_cls_name, th=_thread_id)
+            if ((utime.ticks_ms()- testing_start)/1000)%150 > j_test and ((utime.ticks_ms()- testing_start)/1000)%150 <= 50:
+                cb_30_done = True
+                vl.log(var='cb_30_done', fun=_fun_name, clas=_cls_name, th=_thread_id)
+                print('Bitflip occured', utime.ticks_ms()- testing_start-vl.time_to_write)
+                if ((utime.ticks_ms()- testing_start)/1000)%150 == 0:
+                    j_test+=2
+            else:
+                cb_30_done = False
+                vl.log(var='cb_30_done', fun=_fun_name, clas=_cls_name, th=_thread_id)
             # if cb_hb_done:
             #     cb_hb_done = False
             #     vl.log(var='cb_hb_done', fun=_fun_name, clas=_cls_name, th=_thread_id)
@@ -727,7 +730,7 @@ while True:
                 vl.log(var='retransmit_count', fun=_fun_name, clas=_cls_name, th=_thread_id)
     
         ##### for testing purposes
-        if utime.time()-testing_start >= 900: # 15 minutes
+        if (utime.ticks_ms() - testing_start - vl.time_to_write)/1000 >= 600: # 10 minutes
             vl.save()
             timer0.deinit()
             timer1.deinit()

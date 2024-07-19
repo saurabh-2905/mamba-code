@@ -374,12 +374,13 @@ print('gc.collect duration:', utime.ticks_ms()-gc_start_time)
 ###### for testing purposes ######
 
 ##### for testing purposes ######
-testing_start = time.mktime(time.localtime())
+testing_start = vl.created_timestamp
 ##### for testing purposes ######
-
+print('Time created:', vl.created_timestamp/1000,  'Time since started:', utime.ticks_ms()- testing_start - vl.time_to_write )
+# sys.exit()
 while True:
     ##### for testing purposes ######
-    print('Time since started:', utime.time()- vl.created_timestamp - vl.time_to_write )
+    print('Time since started:', utime.ticks_ms()- testing_start - vl.time_to_write )
     ##### for testing purposes ######
 
     gc.collect()
@@ -506,7 +507,7 @@ while True:
                 retransmit_count = 0
     
         ##### for testing purposes
-        if utime.time()-testing_start >= 900: # 15 minutes
+        if (utime.ticks_ms() - testing_start - vl.time_to_write)/1000 >= 600: # 10 minutes
             timer0.deinit()
             timer1.deinit()
             print('Timer deinitiated')
