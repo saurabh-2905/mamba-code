@@ -23,7 +23,8 @@ from am2301 import AM2301
 import utime
 import sys
 import gc
-import lib.varlogger as vl
+import _thread
+from lib.varlogger import VarLogger as vl
 
 
 # ------------------------ function declaration -------------------------------
@@ -198,6 +199,8 @@ def get_node_id(hex=False):
         return int(node_id, 16)
 
 gc.collect()
+_thread_id = _thread.get_ident()
+vl.thread_status(_thread_id, 'active')     #### MUST
 
 # Allcoate emergeny buffer for interrupt signals
 micropython.alloc_emergency_exception_buf(100)
