@@ -376,7 +376,7 @@ testing_start = time.mktime(time.localtime())
 
 while True:
     ##### for testing purposes ######
-    print('Time since started:', utime.time()- testing_start )
+    print('Time since started:', utime.time()- vl.created_timestamp - vl.time_to_write )
     ##### for testing purposes ######
 
     gc.collect()
