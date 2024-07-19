@@ -166,31 +166,31 @@ def cb_retrans(p):
     vl.log(var='cb_retrans_done', fun=_fun_name, clas=_cls_name, th=_thread_id)
 
 
-def cb_am(p):
-    """
-    Callback for no spikes in the ams.
-    """
-    _thread_id = _thread.get_ident()
-    _fun_name = 'cb_am'
-    _cls_name = '0'
+# def cb_am(p):
+#     """
+#     Callback for no spikes in the ams.
+#     """
+#     _thread_id = _thread.get_ident()
+#     _fun_name = 'cb_am'
+#     _cls_name = '0'
 
-    global am_timer_done
-    am_timer_done = True
-    vl.log(var='am_timer_done', fun=_fun_name, clas=_cls_name, th=_thread_id)
+#     global am_timer_done
+#     am_timer_done = True
+#     vl.log(var='am_timer_done', fun=_fun_name, clas=_cls_name, th=_thread_id)
 
 
-def cb_hb(p):
-    """
-    Callback for heartbeat, sets boolean indicating
-    that the hearbeat is to be send.
-    """
-    _thread_id = _thread.get_ident()
-    _fun_name = 'cb_hb'
-    _cls_name = '0'
+# def cb_hb(p):
+#     """
+#     Callback for heartbeat, sets boolean indicating
+#     that the hearbeat is to be send.
+#     """
+#     _thread_id = _thread.get_ident()
+#     _fun_name = 'cb_hb'
+#     _cls_name = '0'
 
-    global cb_hb_done
-    cb_hb_done = True
-    vl.log(var='cb_hb_done', fun=_fun_name, clas=_cls_name, th=_thread_id)
+#     global cb_hb_done
+#     cb_hb_done = True
+#     vl.log(var='cb_hb_done', fun=_fun_name, clas=_cls_name, th=_thread_id)
 
 
 def cb_lora(p):
@@ -380,10 +380,10 @@ cb_30_done = False
 vl.log(var='cb_30_done', fun=_fun_name, clas=_cls_name, th=_thread_id)
 cb_retrans_done = False
 vl.log(var='cb_retrans_done', fun=_fun_name, clas=_cls_name, th=_thread_id)
-cb_hb_done = False
-vl.log(var='cb_hb_done', fun=_fun_name, clas=_cls_name, th=_thread_id)
-am_timer_done = False
-vl.log(var='am_timer_done', fun=_fun_name, clas=_cls_name, th=_thread_id)
+# cb_hb_done = False
+# vl.log(var='cb_hb_done', fun=_fun_name, clas=_cls_name, th=_thread_id)
+# am_timer_done = False
+# vl.log(var='am_timer_done', fun=_fun_name, clas=_cls_name, th=_thread_id)
 
 # init msg intervals
 msg_interval = 30000  # 30 sec
@@ -511,10 +511,10 @@ timer0 = Timer(0)
 vl.log(var='timer0', fun=_fun_name, clas=_cls_name, th=_thread_id)
 timer1 = Timer(1)
 vl.log(var='timer1', fun=_fun_name, clas=_cls_name, th=_thread_id)
-timer_am = Timer(2)
-vl.log(var='timer_am', fun=_fun_name, clas=_cls_name, th=_thread_id)
-timer_hb = Timer(3)
-vl.log(var='timer_hb', fun=_fun_name, clas=_cls_name, th=_thread_id)
+# timer_am = Timer(2)
+# vl.log(var='timer_am', fun=_fun_name, clas=_cls_name, th=_thread_id)
+# timer_hb = Timer(3)
+# vl.log(var='timer_hb', fun=_fun_name, clas=_cls_name, th=_thread_id)
 
 # Set callback for LoRa (recv as IR)
 lora.on_recv(cb_lora)
@@ -531,9 +531,9 @@ vl.log(var='msg', fun=_fun_name, clas=_cls_name, th=_thread_id)
 # Timer for sending msgs with measurement values + timestamp + crc
 timer0.init(period=msg_interval, mode=Timer.ONE_SHOT, callback=cb_30)
 # Timer for am, which need 2s. Maybe add 0.1s for security
-timer_am.init(period=2000, mode=Timer.PERIODIC, callback=cb_am)
-# Timer for sending the heartbeat signal
-timer_hb.init(period=2500, mode=Timer.PERIODIC, callback=cb_hb)
+# timer_am.init(period=2000, mode=Timer.PERIODIC, callback=cb_am)
+# # Timer for sending the heartbeat signal
+# timer_hb.init(period=2500, mode=Timer.PERIODIC, callback=cb_hb)
 
 # get the start time of the script in seconds wrt the localtime
 start_time = time.mktime(time.localtime())
@@ -605,22 +605,22 @@ while True:
                     vl.log(var='SENSOR_DATA', fun=_fun_name, clas=_cls_name, th=_thread_id)
                 else:
                     # AM2301 readings(involves 2 values)
-                    if am_timer_done:
-                        am_temp, am_hum = func_call()
-                        vl.log(var='am_temp', fun=_fun_name, clas=_cls_name, th=_thread_id)
-                        vl.log(var='am_hum', fun=_fun_name, clas=_cls_name, th=_thread_id)
-                        if not (THRESHOLD_LIMITS[4][0] <= am_temp <= THRESHOLD_LIMITS[4][1]):
-                            LIMITS_BROKEN = 1
-                            vl.log(var='LIMITS_BROKEN', fun=_fun_name, clas=_cls_name, th=_thread_id)
-                        if not (THRESHOLD_LIMITS[4][2] <= am_hum <= THRESHOLD_LIMITS[4][3]):
-                            LIMITS_BROKEN = 1
-                            vl.log(var='LIMITS_BROKEN', fun=_fun_name, clas=_cls_name, th=_thread_id)
-                    else:
-                        # 200 indicating, sensor is not ready
-                        am_temp = 200
-                        vl.log(var='am_temp', fun=_fun_name, clas=_cls_name, th=_thread_id)
-                        am_hum = 200
-                        vl.log(var='am_hum', fun=_fun_name, clas=_cls_name, th=_thread_id)
+                    # if am_timer_done:
+                    am_temp, am_hum = func_call()
+                    vl.log(var='am_temp', fun=_fun_name, clas=_cls_name, th=_thread_id)
+                    vl.log(var='am_hum', fun=_fun_name, clas=_cls_name, th=_thread_id)
+                    if not (THRESHOLD_LIMITS[4][0] <= am_temp <= THRESHOLD_LIMITS[4][1]):
+                        LIMITS_BROKEN = 1
+                        vl.log(var='LIMITS_BROKEN', fun=_fun_name, clas=_cls_name, th=_thread_id)
+                    if not (THRESHOLD_LIMITS[4][2] <= am_hum <= THRESHOLD_LIMITS[4][3]):
+                        LIMITS_BROKEN = 1
+                        vl.log(var='LIMITS_BROKEN', fun=_fun_name, clas=_cls_name, th=_thread_id)
+                    # else:
+                    #     # 200 indicating, sensor is not ready
+                    #     am_temp = 200
+                    #     vl.log(var='am_temp', fun=_fun_name, clas=_cls_name, th=_thread_id)
+                    #     am_hum = 200
+                    #     vl.log(var='am_hum', fun=_fun_name, clas=_cls_name, th=_thread_id)
                     SENSOR_DATA[j] = am_temp
                     vl.log(var='SENSOR_DATA', fun=_fun_name, clas=_cls_name, th=_thread_id)
                     SENSOR_DATA[j+1] = am_hum
@@ -703,9 +703,9 @@ while True:
             # reset timer booleans
             cb_30_done = False
             vl.log(var='cb_30_done', fun=_fun_name, clas=_cls_name, th=_thread_id)
-            if cb_hb_done:
-                cb_hb_done = False
-                vl.log(var='cb_hb_done', fun=_fun_name, clas=_cls_name, th=_thread_id)
+            # if cb_hb_done:
+            #     cb_hb_done = False
+            #     vl.log(var='cb_hb_done', fun=_fun_name, clas=_cls_name, th=_thread_id)
         elif cb_retrans_done:  # retransmit every 5 seconds for piled up packets with no ack
             cb_retrans_done = False
             vl.log(var='cb_retrans_done', fun=_fun_name, clas=_cls_name, th=_thread_id)
