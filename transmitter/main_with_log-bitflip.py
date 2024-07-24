@@ -206,14 +206,16 @@ def cb_lora(p):
     try:
         rcv_msg = p.decode()
         vl.log(var='rcv_msg', fun=_fun_name, clas=_cls_name, th=_thread_id)
-        board_id, timestamp = rcv_msg.split(',')
-        vl.log(var='board_id', fun=_fun_name, clas=_cls_name, th=_thread_id)
-        vl.log(var='timestamp', fun=_fun_name, clas=_cls_name, th=_thread_id)
-        if int(board_id) == SENSORBOARD_ID:
-            for each_pkt in que:
-                if each_pkt[1] == int(timestamp):
-                    print('Received ACK for packet: {}'.format(each_pkt[1]))
-                    que.remove(each_pkt)
+        print('Received message: {}'.format(rcv_msg), len(rcv_msg))
+        if len(rcv_msg) == 14:
+            board_id, timestamp = rcv_msg.split(',')
+            vl.log(var='board_id', fun=_fun_name, clas=_cls_name, th=_thread_id)
+            vl.log(var='timestamp', fun=_fun_name, clas=_cls_name, th=_thread_id)
+            if int(board_id) == SENSORBOARD_ID:
+                for each_pkt in que:
+                    if each_pkt[1] == int(timestamp):
+                        print('Received ACK for packet: {}'.format(each_pkt[1]))
+                        que.remove(each_pkt)
     except Exception as e:
         write_to_log('callback lora: {}'.format(e),
                      str(time.mktime(time.localtime())))

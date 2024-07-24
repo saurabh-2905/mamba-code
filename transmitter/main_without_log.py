@@ -130,12 +130,14 @@ def cb_lora(p):
     global que
     try:
         rcv_msg = p.decode()
-        board_id, timestamp = rcv_msg.split(',')
-        if int(board_id) == SENSORBOARD_ID:
-            for each_pkt in que:
-                if each_pkt[1] == int(timestamp):
-                    print('Received ACK for packet: {}'.format(each_pkt[1]))
-                    que.remove(each_pkt)
+        print('Received message: {}'.format(rcv_msg), len(rcv_msg))
+        if len(rcv_msg) == 14:
+            board_id, timestamp = rcv_msg.split(',')
+            if int(board_id) == SENSORBOARD_ID:
+                for each_pkt in que:
+                    if each_pkt[1] == int(timestamp):
+                        print('Received ACK for packet: {}'.format(each_pkt[1]))
+                        que.remove(each_pkt)
     except Exception as e:
         write_to_log('callback lora: {}'.format(e),
                      str(time.mktime(time.localtime())))
