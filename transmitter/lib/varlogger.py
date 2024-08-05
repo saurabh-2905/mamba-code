@@ -25,6 +25,12 @@ class VarLogger:
     ####### thread tracking
     threads_info = dict() ### init a dictionary to store the status of each thread
 
+    DETECTION_MODE = 0  # 0 for normal mode, 1 for testing mode
+
+    if DETECTION_MODE:
+        pass
+        ### load varfile
+
     # ### avoid overwriting existing files by checking existing files
     # prev_file = ''
     # with open('log_check', 'rb') as f:
