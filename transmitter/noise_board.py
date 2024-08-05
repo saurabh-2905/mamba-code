@@ -36,21 +36,12 @@ try:
 
         if utime.time() % 2 == 0:
             print('Sleeping for 7 seconds')
-            time.sleep(7)
+            time.sleep(10)
         else:
             print('Sleeping for 12 seconds')
-            time.sleep(12)
+            time.sleep(18)
         print('Ping {}'.format(i))
-        # time.sleep(1)
-        # time.sleep(1)
-        # print('Ping {}'.format(i))
-        # time.sleep(1)
-        # time.sleep(1)
-        # print('Ping {}'.format(i))
-        # time.sleep(1)
-        # time.sleep(1)
-        # print('Ping {}'.format(i))
-        # time.sleep(1)
+        
 
         # ################# Manual send data #################
 
