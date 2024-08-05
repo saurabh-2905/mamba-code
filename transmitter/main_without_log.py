@@ -131,7 +131,7 @@ def cb_lora(p):
     try:
         rcv_msg = p.decode()
         print('Received message: {}'.format(rcv_msg), len(rcv_msg))
-        if len(rcv_msg) == 14:
+        if len(rcv_msg) < 20:
             board_id, timestamp = rcv_msg.split(',')
             if int(board_id) == SENSORBOARD_ID:
                 for each_pkt in que:

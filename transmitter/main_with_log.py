@@ -207,7 +207,7 @@ def cb_lora(p):
         rcv_msg = p.decode()
         vl.log(var='rcv_msg', fun=_fun_name, clas=_cls_name, th=_thread_id)
         print('Received message: {}'.format(rcv_msg), len(rcv_msg))
-        if len(rcv_msg) == 14:
+        if len(rcv_msg) < 20:
             board_id, timestamp = rcv_msg.split(',')
             vl.log(var='board_id', fun=_fun_name, clas=_cls_name, th=_thread_id)
             vl.log(var='timestamp', fun=_fun_name, clas=_cls_name, th=_thread_id)
