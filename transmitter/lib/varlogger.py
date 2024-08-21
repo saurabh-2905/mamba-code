@@ -1,3 +1,10 @@
+'''
+TODO: optimization
+- use queue to store events during runtime. It has async behavior and can be used to store log to flas asynchronously
+- second option is to block a fixed memory in ram using tuple fo lists, so that it is more efficient than appending list where it need to rearrange memory for every append. This will need atleast two buffers
+- use u long long for timestamp and uint for event number
+'''
+
 import utime
 import json
 import os
@@ -45,9 +52,14 @@ class VarLogger:
     #         f.write(str(cur_file))
 
     @classmethod
-    def log(cls, var='0', fun='0', clas='0', th='0', val=None):
+    def log(cls, var='0', fun='0', clas='0', th='0', val=None, save=None):
         '''
         var -> str = name of the variable
+        fun -> str = name of the function
+        clas -> str = name of the class
+        th -> str = thread id
+        val -> any = value of the variable
+        save -> bool = save the data to flash. If None, it will save the data after 1000 events. If True, it will save the data immediately. If False, it will not save the data
         '''
         dict_keys = cls.data_dict.keys()
         ### map thread id to a single digit integer fo simplicity
@@ -78,7 +90,7 @@ class VarLogger:
         #print(cls._write_count)
         ### write to flash approx every 6 secs (counting to 1000 = 12 ms)
         num_events = 1000
-        if cls._write_count >= num_events:
+        if (cls._write_count >= num_events and save == None) or save == True:
             cls._write_count = 0
             start_time = utime.ticks_ms()
             cls.write_data() ### save the data to flash
