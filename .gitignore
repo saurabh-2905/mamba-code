@@ -36,6 +36,7 @@ build/
 .hg
 .svn
 CVS
+*.csv
 
 *.conf
  
