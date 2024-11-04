@@ -16,8 +16,21 @@ class VarLogger:
     This class is the part of the tool, it logs data and collects all the information required to monitor the system
     all the code lines that are part of the tools are commented using '#/////'
     '''
-    
-    data = []   ### store variale sequence
+    TRACE_LENGTH = 500
+    buffer_select = 1     ##### 1 for data1, 2 for data2
+    save_buffer = 0    ##### 1 for data1, 2 for data2, 0 for none
+    buffer_index = 0
+
+    gc.collect()  # Run garbage collection to get accurate memory info
+    before = gc.mem_free()  # Get available memory before allocation
+    data1 = [(0, 0)] * TRACE_LENGTH   ### store variale sequence
+    data2 = [(0, 0)] * TRACE_LENGTH   ### store variale sequence
+    gc.collect()  # Run garbage collection again, if needed
+    after = gc.mem_free()  # Get available memory after allocation
+    used_memory = before - after  # Calculate used memory
+    print("Memory used by {} event list: {} bytes".format(TRACE_LENGTH, used_memory))  # Print used memory
+
+
     created_timestamp = utime.ticks_ms()  ### start time
     data_dict = {}  ### store timestamp for each variable
     _catchpop = 0  ### temporary storage
@@ -38,6 +51,14 @@ class VarLogger:
         pass
         ### load varfile
 
+    ####### avoid duplicate events
+    prev1_event = -1   ### to avoid clasing with first event with index 0
+    prev2_event = -1
+
+    prev1_time = 0
+    prev2_time = 0
+
+
     # ### avoid overwriting existing files by checking existing files
     # prev_file = ''
     # with open('log_check', 'rb') as f:
@@ -50,6 +71,7 @@ class VarLogger:
     #     trace_name = 'trace{}'.format(cur_file)
     #     with open('log_check', 'wb') as f:
     #         f.write(str(cur_file))
+
 
     @classmethod
     def log(cls, var='0', fun='0', clas='0', th='0', val=None, save=None):
@@ -83,14 +105,17 @@ class VarLogger:
         # else:
         #     cls.data_dict[event_num] = [(log_time, val)]
 
-        ### log the sequence to trace file
-        cls.log_seq(event_num, log_time)
-        
-        cls._write_count +=1
+        ### log the sequence to trace file, but only unique events (avoid duplicates)
+        if cls.prev1_event != event_num:
+            cls.log_seq(event_num, log_time)
+            cls._write_count +=1
+        else:
+            pass
+
         #print(cls._write_count)
         ### write to flash approx every 6 secs (counting to 1000 = 12 ms)
-        num_events = 1000
-        if (cls._write_count >= num_events and save == None) or save == True:
+        num_events = cls.TRACE_LENGTH
+        if (cls._write_count >= num_events and save != False):
             cls._write_count = 0
             start_time = utime.ticks_ms()
             cls.write_data() ### save the data to flash
@@ -98,6 +123,13 @@ class VarLogger:
             print('write time for {}:'.format(num_events), cls.time_to_write)
             cls.data = [] ### clear the data after writing to flash
             gc.collect()
+
+        ### check previous 3 events to avoid duplicate events
+        cls.prev2_event = cls.prev1_event
+        cls.prev1_event = event_num
+
+        cls.prev2_time = cls.prev1_time
+        cls.prev1_time = log_time
                 
 
     @classmethod
@@ -110,6 +142,7 @@ class VarLogger:
         
         return cls._vardict[var]
     
+
     @classmethod
     def _int2var(cls, num):
         '''
@@ -119,9 +152,42 @@ class VarLogger:
             if value == num:
                 return key
 
+
     @classmethod
     def log_seq(cls, event, log_time):
-        cls.data += [(event, log_time)]
+
+        if cls.buffer_select == 1:
+            # print('storing in buffer 1 at {}:'.format(cls.buffer_index))
+            ### if the buffer is full, switch to buffer 2
+            if cls.buffer_index == cls.TRACE_LENGTH-1:
+                cls.data1[cls.buffer_index] = (event, log_time)
+                cls.buffer_select = 2
+                cls.save_buffer = 1
+                cls.buffer_index = 0
+            ### if the buffer is empty/full, initialize it
+            elif cls.buffer_index == 0:
+                cls.data1[cls.buffer_index] = (event, log_time)
+                cls.buffer_index += 1
+            else:
+                cls.data1[cls.buffer_index] = (event, log_time)
+                cls.buffer_index += 1
+
+        elif cls.buffer_select == 2:
+            # print('storing in buffer 2 at {}:'.format(cls.buffer_index))
+            ### if the buffer is full, switch to buffer 1
+            if cls.buffer_index == cls.TRACE_LENGTH-1:
+                cls.data2[cls.buffer_index] = (event, log_time)
+                cls.buffer_select = 1
+                cls.save_buffer = 2
+                cls.buffer_index = 0
+            ### if the buffer is empty/full, initialize it
+            elif cls.buffer_index == 0:
+                cls.data2[cls.buffer_index] = (event, log_time)
+                cls.buffer_index += 1
+            else:
+                cls.data2[cls.buffer_index] = (event, log_time)
+                cls.buffer_index += 1
+        
 
     # @classmethod
     # def check_files(cls):
@@ -143,27 +209,54 @@ class VarLogger:
 
     #     return (_filename,_seqname, _varlistname)
     
+
     @classmethod
     def write_data(cls):
         # with open(cls.write_name, 'w') as fp:
         #     json.dump(cls.data_dict, fp)
         #     print('dict saved', cls.write_name)
 
-        with open(cls.trace_name, 'w') as fp:
-            json.dump(cls.data, fp)
-            print('trace saved', cls.trace_name)
+        if cls.save_buffer == 1:
+            with open(cls.trace_name, 'w') as fp:
+                to_write = json.dumps(cls.data1)
+                fp.write(to_write)
+                # json.dump(cls.data1, fp)
+                print('buffer1 saved', cls.trace_name)
+                ### clear the buffer after writing to flash
+                cls.save_buffer = 0
+                gc.collect()  # Run garbage collection again, if needed
+                before = gc.mem_free()  # Get available memory after allocation
+                cls.data1 = [(0, 0)] * cls.TRACE_LENGTH
+                gc.collect()  # Run garbage collection again, if needed
+                after = gc.mem_free()  # Get available memory after allocation
+                used_memory =  after - before # Calculate used memory
+                print("Memory used by full buffer list: {} bytes".format(used_memory))  # Print used memory
+
+        elif cls.save_buffer == 2:
+            with open(cls.trace_name, 'w') as fp:
+                to_write = json.dumps(cls.data2)
+                fp.write(to_write)
+                # json.dump(cls.data2, fp)
+                print('buffer2 saved', cls.trace_name)
+                ### clear the buffer after writing to flash
+                cls.save_buffer = 0
+                cls.data2 = [(0, 0)] * cls.TRACE_LENGTH
 
         with open('varlist'+ cls.trace_name[5:], 'w') as fp: ### save the variable list for each log file
-            json.dump(cls._vardict, fp)
+            to_write = json.dumps(cls._vardict)
+            fp.write(to_write)
+            # json.dump(cls._vardict, fp)
             print('varlist saved', cls.trace_name[5:])
 
         cls.cur_file += 1
         cls.trace_name = 'trace{}'.format(cls.cur_file)
 
+
     @classmethod
     def save(cls):
         #### using write_data in main scripts results in empty log files, data is lost
         cls.write_data()
+
 
     @classmethod
     def thread_status(cls, thread_id=None, status=None):
@@ -192,6 +285,7 @@ class VarLogger:
         else:
             return(ids, cls.threads_info)
         
+
     @classmethod
     def map_thread(cls, thread_id):
         ### amp the long thread id to an integer based on thread_map
@@ -202,6 +296,7 @@ class VarLogger:
         mapped_id = cls._thread_map[thread_id]
         return mapped_id
     
+
     @classmethod
     def traceback(cls, exc):
         ### write the traceback that is generated in the except block to a text file for future debugging
