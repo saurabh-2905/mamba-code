@@ -27,6 +27,15 @@ import sys
 import utime
 #vl.log(var='0', fun=_fun_name, clas=_cls_name, th=_thread_id)     ### standard logging format
 
+#### measuring performance metrics ####
+import micropython
+import gc
+start_time_exe = utime.ticks_cpu()  # Start time measurement
+gc.collect()  # Force garbage collection to check memory usage
+avg_memory = 0
+total_gc = 167296 ###   total_gc: 112000, alloc_gc + free_gc = 167296
+total_interval_test = 0
+
 
 gc.collect()
 
@@ -562,6 +571,9 @@ while True:
     ##### for testing purposes ######
 
     gc.collect()
+    total_interval_test += 1
+    avg_memory += gc.mem_alloc()                # total_gc - gc.mem_free()   ### accumulate memory usage for all iterations
+    print('avg_memory for ', total_interval_test, ': ',  gc.mem_alloc())    #total_gc - gc.mem_free(),
 
     try:
 
@@ -724,11 +736,20 @@ while True:
                 vl.log(var='retransmit_count', fun=_fun_name, clas=_cls_name, th=_thread_id)
     
         ##### for testing purposes
-        if (utime.ticks_ms() - testing_start - vl.time_to_write)/1000 >= 600: # 10 minutes
-            vl.save()
+        # if (utime.ticks_ms() - testing_start - vl.time_to_write)/1000 >= 600: # 10 minutes
+        if total_interval_test >= 300: ## approx 10 minutes assuming each loop takes 2 seconds
             timer0.deinit()
             timer1.deinit()
             print('Timer deinitiated')
+
+            gc.collect()
+            end_time_exe = utime.ticks_cpu()  # End time measurement
+            execution_time = utime.ticks_diff( end_time_exe, start_time_exe)   ### correct syntax (end, start)
+            memory_usage = gc.mem_alloc()              ####total_gc - gc.mem_free()
+            avg_memory /= total_interval_test
+            print("Execution Time:", execution_time, 'cpu ticks')
+            print("Memory Usage:", memory_usage, 'bytes')
+            print("Average Memory Usage:", avg_memory, 'bytes')
             sys.exit()
 
     except Exception as e:
