@@ -45,20 +45,20 @@ try:
 
         # ################# Manual send data #################
 
-        # if ext_button() == 0:
-        #     print('Button pressed, send msg')
-        #     s.send('Hello World, This is noise packet for Testing')
-        #     # print('Ping {}'.format(i))
-        #     pycom.rgbled(0x002200) # green
-        #     time.sleep(0.1)
-        #     pycom.rgbled(0x000000)  # off
-        #     time.sleep(0.2)
-        # else:
-        #     print('Button not pressed')
-        #     pycom.rgbled(0x000022) # blue
-        #     time.sleep(0.2)
-        #     pycom.rgbled(0x000000)  # off
-        #     time.sleep(1)
+        if ext_button() == 0:
+            print('Button pressed, send msg')
+            s.send('Hello World, This is noise packet for Testing')
+            # print('Ping {}'.format(i))
+            pycom.rgbled(0x002200) # green
+            time.sleep(0.1)
+            pycom.rgbled(0x000000)  # off
+            time.sleep(0.2)
+        else:
+            print('Button not pressed')
+            pycom.rgbled(0x000022) # blue
+            time.sleep(0.2)
+            pycom.rgbled(0x000000)  # off
+            time.sleep(1)
 
 except:
     s.close()
