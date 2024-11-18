@@ -563,11 +563,11 @@ print('gc.collect duration:', utime.ticks_ms()-gc_start_time)
 ##### for testing purposes ######
 testing_start = vl.created_timestamp
 ##### for testing purposes ######
-print('Time created:', vl.created_timestamp/1000,  'Time since started:', utime.ticks_ms()- testing_start - vl.time_to_write )
+print('Time created:', vl.created_timestamp/1000,  'Time since started:', utime.ticks_ms()- testing_start - vl.overhead_time )
 # sys.exit()
 while True:
     ##### for testing purposes ######
-    print('Time since started:', utime.ticks_ms()- testing_start - vl.time_to_write )
+    print('Time since started:', utime.ticks_ms()- testing_start - vl.overhead_time )
     ##### for testing purposes ######
 
     gc.collect()
@@ -736,7 +736,7 @@ while True:
                 vl.log(var='retransmit_count', fun=_fun_name, clas=_cls_name, th=_thread_id)
     
         ##### for testing purposes
-        # if (utime.ticks_ms() - testing_start - vl.time_to_write)/1000 >= 600: # 10 minutes
+        # if (utime.ticks_ms() - testing_start - vl.overhead_time)/1000 >= 600: # 10 minutes
         if total_interval_test >= 300: ## approx 10 minutes assuming each loop takes 2 seconds
             timer0.deinit()
             timer1.deinit()
@@ -750,6 +750,8 @@ while True:
             print("Execution Time:", execution_time, 'cpu ticks')
             print("Memory Usage:", memory_usage, 'bytes')
             print("Average Memory Usage:", avg_memory, 'bytes')
+            avg_detection_stats = vl.avg_detection_time
+            print('Average Detection Time:', avg_detection_stats[0]/avg_detection_stats[1], 'ms')
             sys.exit()
 
     except Exception as e:
