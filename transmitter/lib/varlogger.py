@@ -10,16 +10,21 @@ import json
 import os
 import sys
 import gc
+from lib.exeint import exeInt
 
 class VarLogger:
     '''
     This class is the part of the tool, it logs data and collects all the information required to monitor the system
     all the code lines that are part of the tools are commented using '#/////'
+
+    The LOGGING mode logs the data to a file and the TRACE mode logs the sequence of events to a file.
+    The DETECTION mode performs detection alon with data logging.
     '''
-    TRACE_LENGTH = 500
+    TRACE_LENGTH = 200
     buffer_select = 1     ##### 1 for data1, 2 for data2
     save_buffer = 0    ##### 1 for data1, 2 for data2, 0 for none
     buffer_index = 0
+    DETECTION = True   ### flag to enable detection, if True, it will perform detection+logging, if False, it will only do logging
 
     gc.collect()  # Run garbage collection to get accurate memory info
     before = gc.mem_free()  # Get available memory before allocation
@@ -30,6 +35,30 @@ class VarLogger:
     used_memory = before - after  # Calculate used memory
     print("Memory used by {} event list: {} bytes".format(TRACE_LENGTH, used_memory))  # Print used memory
 
+    gc.collect()  # Run garbage collection to get accurate memory info
+    before = gc.mem_alloc()  # Get aallocated memory
+    detection_buffer = dict() ### store the timestamps for each variable for runtime detection
+    if DETECTION:
+        print('Detection mode enabled')
+        ### check if thresholds file exists
+        if 'thresholds.json' not in os.listdir():
+            raise('Thresholds file not found')
+        else:
+            ### load thresholds
+            with open('thresholds.json', 'r') as f:
+                thresholds = json.load(f)
+                print('Thresholds loaded')
+                print('Thresholds:\n', thresholds)
+
+            ### load ei model
+            ei_model = exeInt()
+            print('EI model loaded')
+
+    gc.collect()  # Run garbage collection to get accurate memory info
+    after = gc.mem_alloc()  # Get aallocated memory
+    used_memory = after - before  # Calculate used memory
+    print('Memory for detection setup (buffer, thresholds, model):', used_memory)
+        
 
     created_timestamp = utime.ticks_ms()  ### start time
     data_dict = {}  ### store timestamp for each variable
@@ -39,17 +68,12 @@ class VarLogger:
     write_name, trace_name = ['log0', 'trace0']
     _vardict = dict() ### dict of variables
     cur_file = 0 ### file number
-    time_to_write = 0 ### time to write to flash
+    overhead_time = 0 ### time to write to flash
+    avg_detection_time = [0,0]  ### totoal detection time for all detections, count of detections
     
 
     ####### thread tracking
     threads_info = dict() ### init a dictionary to store the status of each thread
-
-    DETECTION_MODE = 0  # 0 for normal mode, 1 for testing mode
-
-    if DETECTION_MODE:
-        pass
-        ### load varfile
 
     ####### avoid duplicate events
     prev1_event = -1   ### to avoid clasing with first event with index 0
@@ -74,7 +98,7 @@ class VarLogger:
 
 
     @classmethod
-    def log(cls, var='0', fun='0', clas='0', th='0', val=None, save=None):
+    def log(cls, var='0', fun='0', clas='0', th='0', val=None, save=None, detection=None):
         '''
         var -> str = name of the variable
         fun -> str = name of the function
@@ -88,7 +112,7 @@ class VarLogger:
         th = cls.map_thread(th)
         ### make the event name based on the scope
         event = '{}-{}-{}-{}'.format(th, clas, fun, var)
-        log_time = utime.ticks_ms() - cls.created_timestamp - cls.time_to_write
+        log_time = utime.ticks_ms() - cls.created_timestamp - cls.overhead_time
 
         event_num = cls._var2int(event)
 
@@ -108,6 +132,7 @@ class VarLogger:
         ### log the sequence to trace file, but only unique events (avoid duplicates)
         if cls.prev1_event != event_num:
             cls.log_seq(event_num, log_time)
+            cls.detection_dict(event_num, log_time)
             cls._write_count +=1
         else:
             pass
@@ -115,14 +140,32 @@ class VarLogger:
         #print(cls._write_count)
         ### write to flash approx every 6 secs (counting to 1000 = 12 ms)
         num_events = cls.TRACE_LENGTH
-        if (cls._write_count >= num_events and save != False):
-            cls._write_count = 0
-            start_time = utime.ticks_ms()
-            cls.write_data() ### save the data to flash
-            cls.time_to_write += utime.ticks_ms()-start_time
-            print('write time for {}:'.format(num_events), cls.time_to_write)
-            cls.data = [] ### clear the data after writing to flash
-            gc.collect()
+        if (cls._write_count >= num_events):
+            if save!=False:
+                cls._write_count = 0
+                start_time = utime.ticks_ms()
+                cls.write_data() ### save the data to flash
+                cls.overhead_time += (utime.ticks_ms()-start_time)   ### add the time taken to write to flash to avoid spikes in time
+                print('write time for {}:'.format(num_events), utime.ticks_ms()-start_time)
+                cls.data = [] ### clear the data after writing to flash
+                gc.collect()
+        
+            ### check if in DETECTION mode 
+            if cls.DETECTION and detection!=False: 
+                start_time = utime.ticks_ms()
+                anomalies_detected = cls.ei_model.runtime_detection(cls.detection_buffer, cls.thresholds, cls._int2var)
+                if len(anomalies_detected) > 1:
+                    merged_anomalies, _ = cls.ei_model.merge_detections(anomalies_detected)
+                else:
+                    merged_anomalies = anomalies_detected
+                print('Anomalies detected:\n', merged_anomalies)
+                cls.save_detections(merged_anomalies)
+                cls.clear_detection_buffer()
+                cls.overhead_time += (utime.ticks_ms()-start_time )  ### add the time taken to write to flash to avoid spikes in time
+                print('Detection Time:', utime.ticks_ms()-start_time)
+                cls.avg_detection_time[0] += (utime.ticks_ms()-start_time)
+                cls.avg_detection_time[1] += 1
+            
 
         ### check previous 3 events to avoid duplicate events
         cls.prev2_event = cls.prev1_event
@@ -131,6 +174,9 @@ class VarLogger:
         cls.prev2_time = cls.prev1_time
         cls.prev1_time = log_time
                 
+    @classmethod
+    def detect_ei(cls,threhold_path):
+        pass
 
     @classmethod
     def _var2int(cls, var):
@@ -155,7 +201,7 @@ class VarLogger:
 
     @classmethod
     def log_seq(cls, event, log_time):
-
+        # print('buffer {} index:'.format(cls.buffer_select), cls.buffer_index)
         if cls.buffer_select == 1:
             # print('storing in buffer 1 at {}:'.format(cls.buffer_index))
             ### if the buffer is full, switch to buffer 2
@@ -189,6 +235,52 @@ class VarLogger:
                 cls.buffer_index += 1
         
 
+    @classmethod
+    def detection_dict(cls, event, log_time):
+        '''
+        store the timestamps for each variable for runtime detection
+        '''
+        if event not in cls.detection_buffer.keys():
+            cls.detection_buffer[event] = [log_time]
+        else:
+            cls.detection_buffer[event].append(log_time)
+
+    
+    @classmethod
+    def clear_detection_buffer(cls):
+        '''
+        clear the detection buffer after performing detection
+        keep last time stamp for each variable/event
+        '''
+        keys = cls.detection_buffer.keys()
+        for key in keys:
+            cls.detection_buffer[key] = [cls.detection_buffer[key][-1]]
+
+
+    @classmethod
+    def save_detections(cls, detections):
+        '''
+        save the detections to a file
+        '''
+        if detections != []:
+            if 'detections.json' in os.listdir():
+                ### append detections to the existing file
+                with open('detections.json', 'r') as f:
+                    _detections = json.load(f)
+                    _detections.extend(detections)
+                    with open('detections.json', 'w') as f:
+                        to_write = json.dumps(_detections)
+                        f.write(to_write)
+                        print('Detections saved')
+            else:
+                ### create a new file and save detections
+                with open('detections.json', 'w') as f:
+                    to_write = json.dumps(detections)
+                    f.write(to_write)
+                    print('Detections saved')
+        else:
+            return
+        
     # @classmethod
     # def check_files(cls):
     #     '''
